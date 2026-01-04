@@ -14,7 +14,7 @@ function isNoteTag(value: string): value is Note["tag"] {
 export default async function NotesByTagPage({
   params,
 }: {
-  params: Promise<{ tag?: string[] }>;
+  params: Promise<{ slug?: string[] }>;
 }) {
   const { tag } = await params;
 
