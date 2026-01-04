@@ -1,6 +1,6 @@
 import { dehydrate, HydrationBoundary, QueryClient } from "@tanstack/react-query";
 import { fetchNotes } from "@/lib/api/notes";
-import NotesByTagClient from "./NotesByTag.client";
+import NotesClient from "./Notes.client";
 import type { Note } from "@/types/note";
 
 const PER_PAGE = 12;
@@ -27,7 +27,7 @@ export default async function NotesByTagPage({
 
   return (
     <HydrationBoundary state={dehydrate(queryClient)}>
-      <NotesByTagClient initialTag={raw} />
+      <NotesClient initialTag={raw} />
     </HydrationBoundary>
   );
 }
