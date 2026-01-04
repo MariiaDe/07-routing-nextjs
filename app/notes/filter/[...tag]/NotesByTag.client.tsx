@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useDebounce } from "use-debounce";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -22,6 +22,13 @@ interface FetchNotesResponse {
   totalPages: number;
 }
 
+const TAGS: Note["tag"][] = ["Todo", "Work", "Personal", "Meeting", "Shopping"];
+type TagFilter = Note["tag"] | "all";
+
+function isNoteTag(value: string): value is Note["tag"] {
+  return (TAGS as string[]).includes(value);
+}
+
 export default function NotesByTagClient({ initialTag }: { initialTag: string }) {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
@@ -30,20 +37,30 @@ export default function NotesByTagClient({ initialTag }: { initialTag: string })
 
   const queryClient = useQueryClient();
 
-  const tag = initialTag === "all" ? undefined : initialTag;
+  
+  const normalized: TagFilter = useMemo(() => {
+    if (initialTag === "all") return "all";
+    if (isNoteTag(initialTag)) return initialTag;
+    return "all";
+  }, [initialTag]);
 
-  const queryKey = ["notes", page, debouncedSearch, tag ?? "all"];
+  
+  const tagForApi: Note["tag"] | undefined = normalized === "all" ? undefined : normalized;
+
+  const queryKey = ["notes", page, debouncedSearch, normalized];
 
   const { data, isLoading, error } = useQuery<FetchNotesResponse, Error>({
     queryKey,
-    queryFn: () => fetchNotes(page, PER_PAGE, debouncedSearch, tag),
+    queryFn: () => fetchNotes(page, PER_PAGE, debouncedSearch, normalized),
     placeholderData: queryClient.getQueryData<FetchNotesResponse>([
       "notes",
       page - 1,
       debouncedSearch,
-      tag ?? "all",
+      normalized,
     ]),
     staleTime: 5000,
+   
+    refetchOnMount: false,
   });
 
   if (isLoading) return <p>Loading, please wait...</p>;
@@ -55,7 +72,13 @@ export default function NotesByTagClient({ initialTag }: { initialTag: string })
   return (
     <div className={css.wrapper}>
       <header className={css.toolbar}>
-        <SearchBox value={search} onChange={(v) => { setSearch(v); setPage(1); }} />
+        <SearchBox
+          value={search}
+          onChange={(v) => {
+            setSearch(v);
+            setPage(1);
+          }}
+        />
 
         {totalPages > 1 && (
           <Pagination
