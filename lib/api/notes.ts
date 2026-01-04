@@ -23,8 +23,6 @@ export const fetchNotes = async (
   const params: Record<string, string | number> = { page, perPage };
 
   if (search) params.search = search;
-
-  
   if (tag && tag !== "all") params.tag = tag;
 
   const res: AxiosResponse<FetchNotesResponse> = await api.get("", { params });
