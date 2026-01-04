@@ -37,7 +37,6 @@ export default function NotesByTagClient({ initialTag }: { initialTag: string })
 
   const queryClient = useQueryClient();
 
-  
   const normalized: TagFilter = useMemo(() => {
     if (initialTag === "all") return "all";
     if (isNoteTag(initialTag)) return initialTag;
@@ -45,13 +44,15 @@ export default function NotesByTagClient({ initialTag }: { initialTag: string })
   }, [initialTag]);
 
   
-  const tagForApi: Note["tag"] | undefined = normalized === "all" ? undefined : normalized;
+  const tagForApi: Note["tag"] | undefined =
+    normalized === "all" ? undefined : normalized;
 
   const queryKey = ["notes", page, debouncedSearch, normalized];
 
   const { data, isLoading, error } = useQuery<FetchNotesResponse, Error>({
     queryKey,
-    queryFn: () => fetchNotes(page, PER_PAGE, debouncedSearch, normalized),
+   
+    queryFn: () => fetchNotes(page, PER_PAGE, debouncedSearch, tagForApi),
     placeholderData: queryClient.getQueryData<FetchNotesResponse>([
       "notes",
       page - 1,
@@ -59,7 +60,6 @@ export default function NotesByTagClient({ initialTag }: { initialTag: string })
       normalized,
     ]),
     staleTime: 5000,
-   
     refetchOnMount: false,
   });
 
